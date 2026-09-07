@@ -24,7 +24,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final String genesisParentHash = "0".repeat(64);
-    private KeyPair asymmetricKeyPair;
+    private final KeyPair asymmetricKeyPair;
 
     public AuditLogServiceImpl() {
         try {
@@ -62,7 +62,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     public String calculatePayloadRootHash(Map<String, String> commitments) {
-        List<String> sortedKeys = commitments.keySet().stream().sorted().collect(Collectors.toList());
+        List<String> sortedKeys = commitments.keySet().stream().sorted().toList();
         StringBuilder combinedBytes = new StringBuilder();
         for (String key : sortedKeys) {
             combinedBytes.append(key).append(":").append(commitments.get(key));
@@ -190,12 +190,12 @@ public class AuditLogServiceImpl implements AuditLogService {
         rwLock.writeLock().lock();
         try {
             int itemsRemoved = 0;
-            while (!ledger.isEmpty() && ledger.get(0).getTimestamp() < olderThanTimestamp) {
-                ledger.remove(0);
+            while (!ledger.isEmpty() && ledger.getFirst().getTimestamp() < olderThanTimestamp) {
+                ledger.removeFirst();
                 itemsRemoved++;
             }
             if (itemsRemoved > 0 && !ledger.isEmpty()) {
-                ledger.get(0).setPrunedGenesis(true);
+                ledger.getFirst().setPrunedGenesis(true);
             }
             return itemsRemoved;
         } finally {
